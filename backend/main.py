@@ -17,7 +17,7 @@ load_dotenv()
 
 
 def create_app() -> FastAPI:
-    app = FastAPI(title="Knowledge Backend", version="0.1.0")
+    app = FastAPI()
 
     app.add_middleware(
         CORSMiddleware,
