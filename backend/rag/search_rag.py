@@ -63,7 +63,8 @@ class SearchRAGWorkflow:
     
     def check_documents(self, state: State) -> State:
         print("---Check Documents---")
-
+        if len(state["documents"])==0:
+            return {"relevant": 'no'}
         context = "\n\n".join(doc["page_content"] for doc in state["documents"])
         template = PromptTemplate.from_template(
             "Document:\n{context}\n\nQuestion: {question}"
