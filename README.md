@@ -74,6 +74,10 @@ To run this application, you will need to start both the backend and the fronten
 *   **uv**: This project uses `uv` for fast package and virtual environment management. Install it with `pip install uv`.
 *   An environment variable for your Google API Key (`GOOGLE_API_KEY`).
 *   (Optional) An environment variable for your Tavily API Key (`TAVILY_API_KEY`) for the search-enabled RAG.
+*   Clone repo
+   ```bash
+   git clone git@github.com:sameergopali/AIKnowledgeBase.git
+    ```
 
 ### Backend Setup
 
