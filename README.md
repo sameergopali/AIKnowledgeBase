@@ -131,7 +131,7 @@ The application will open in your web browser. By default, it will connect to th
 
 
 ### Workflow Graph
-**Search RAG **
+**Search RAG**
 ![SearchRag](assests/searchrag.png)
 
 **Suggestion RAG**
