@@ -12,7 +12,7 @@ This project provides an intelligent, AI-driven platform for building and queryi
 *   **Confidence Scoring:** Every answer is returned with a confidence score, giving you insight into the reliability of the information.
 
 
-## How It Works
+## Design Decision
 
 The application is composed of a decoupled backend service that handles the AI logic and a frontend interface for user interaction.
 
@@ -36,9 +36,6 @@ The backend is built using **FastAPI** and orchestrates the entire process from 
         *   If the documents are **not relevant**, it triggers a web search using the **Tavily Search API**. The search results are then used as the new context to generate an answer.
         *   After an answer is generated (either from documents or web search), it undergoes a confidence check. If the confidence score is **low**, the workflow determines that the original query might be suboptimal. It then enters a `query_rewrite` step, where the LLM improves the user's question based on the suggestions and missing info. The rewritten query is then used to perform a new web search, and the process repeats to find a better answer.
 
-### Frontend
-
-The frontend is a **Streamlit** application that provides a clean, user-friendly interface for the knowledge base. It handles file uploads, displays the chat history, and renders the structured responses from the backend, including the confidence scores and suggestions in an expandable "Answer Details" section.
 
 ## Technology Stack
 
@@ -50,6 +47,21 @@ The frontend is a **Streamlit** application that provides a clean, user-friendly
     *   **Tavily Search:** A search API optimized for LLMs, used to enhance the knowledge base with real-time web results when local documents are insufficient.
 *   **Frontend:**
     *   **Streamlit:** Used for rapid development of the interactive web application interface.
+
+
+### Trade-offs Made During Development
+
+To deliver a functional prototype within the time constraint, the following pragmatic trade-offs were made.
+
+*   **Chunking Strategy:** A generic recursive chunking strategy was used for rapid implementation, which risks splitting content in ways that break semantic meaning.
+*   **Workflow Complexity:** LangGraph was chosen for explicit control over complex RAG logic, at the cost of being more verbose and complex than simpler sequential chains.
+*   **Answer Completeness Check:** Answer completeness was evaluated via an LLM call for maximum flexibility, introducing extra latency and cost compared to deterministic checks.
+* **Default Embedding Model:** For embedding all-MiniLM-L6-v2(384-dimensional vectors) was used for fast, zero-dependency setup, though its general-purpose embeddings may be less precise for specialized documents.
+*   **Search Integration:** An external search API (Tavily) was used for quick integration, creating a dependency on a third-party service and its associated costs.
+*   **UI and Model Selection:** The UI and underlying LLM model were hardcoded to drastically simplify development, sacrificing user customization and model flexibility.
+*   **Query Rephrasing:** Query rewriting was implemented *reactively* after a low-confidence answer to save latency, but it could be rephrased before retreival which can improve document search.
+*   **Conversational Context:** Chat history was not used to contextualize new queries to simplify the logic for each turn, which prevents the system from handling conversational follow-ups.
+*   **Source Citations:** Source document citations were omitted from the final answer to streamline the generation process, which reduces the transparity of the results.
 
 ## Getting Started
 
@@ -115,3 +127,12 @@ To run this application, you will need to start both the backend and the fronten
     ```
 
 The application will open in your web browser. By default, it will connect to the backend at `http://localhost:8000`. You can change this in the "Settings" section of the web interface if your backend is running on a different URL.
+
+
+
+### Workflow Graph
+**Search RAG **
+![SearchRag](assests/searchrag.png)
+
+**Suggestion RAG**
+![SuggestionRag](assests/suggestionrag.png)
