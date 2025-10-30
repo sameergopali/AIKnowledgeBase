@@ -77,7 +77,7 @@ To run this application, you will need to start both the backend and the fronten
 *   Clone repo
    ```bash
    git clone git@github.com:sameergopali/AIKnowledgeBase.git
-    ```
+   ```
 
 ### Backend Setup
 
