@@ -20,21 +20,22 @@ The application is composed of a decoupled backend service that handles the AI l
 
 The backend is built using **FastAPI** and orchestrates the entire process from document ingestion to answer generation.
 
-1.  **Document Indexing:** When a file is uploaded, the `UploadService` processes it by splitting the content into manageable chunks using a `RecursiveCharacterTextSplitter`. These chunks are then converted into vector embeddings and stored in a **ChromaDB** collection, creating a searchable knowledge base.
+1.  **Document Indexing:** When a file is uploaded, the `UploadService` processes it by splitting the content into manageable chunks using a `RecursiveCharacterTextSplitter`. These chunks are then converted into vector embeddings and stored in a **ChromaDB** collection, creating a searchable knowledge base. ChromaDB is used because runs without a dedicated server using its client libraries for local usage.
 
 2.  **RAG Processing & Workflows:** The `ChatService` selects a RAG workflow based on the user's choice. These workflows, built with **LangGraph**, are state machines that manage the logic of retrieving information and generating answers. The core retrieval process is enhanced with a reranking step:
     *   **Initial Retrieval:** The system performs a vector similarity search in ChromaDB to fetch an initial set of documents that are semantically related to the user's query.
-    *   **Reranking:** To improve accuracy, a more powerful **Cross-Encoder model** (`ms-marco-MiniLM-L-6-v2`) re-evaluates the top results from the initial retrieval. Unlike the embedding model, which compares the query and documents independently, the Cross-Encoder examines them together, providing a much more accurate relevance score. This ensures that only the most contextually relevant document chunks are passed to the language model.
+    *   **Reranking:** To improve accuracy, a more powerful **Cross-Encoder model** (`ms-marco-MiniLM-L-6-v2`) re-ranks the top results from the initial retrieval. Unlike the embedding model, which compares the query and documents independently, the Cross-Encoder examines them together, providing a much more accurate relevance score. This ensures that only the most contextually relevant document chunks are passed to the language model.
 
-3.  **LLM Integration:** The system uses Google's **Gemini** models via the `langchain-google-genai` library to understand the user's query, evaluate document relevance, and generate coherent answers.
+3.  **LLM Integration:** The system uses Google's **Gemini** models via the `langchain-google-genai` library to understand the user's query, evaluate document relevance, and generate coherent answers. The free tier is very generous and powerful models are available.
 
 4.  **Dynamic Workflows in Detail:**
     *   **SuggestionRAGWorkflow:** This workflow first retrieves and reranks documents. It then uses an LLM call to grade whether the retrieved context is relevant to the question.
-        *   If **relevant**, it proceeds to generate an answer, which is then passed to a final "confidence check" node. This node evaluates if the answer is well-supported by the context and generates a confidence score, suggestions, and a list of any missing information.
+        *   If **relevant**, it proceeds to generate an answer, which is then passed to a final "confidence check" node. This node evaluates if the answer is well-supported by the context and generates a confidence score, suggestions, and a list of any missing information. This mechanism helps prevent answers generated from irrelevant documents; however, it remains a simple LLM-based validation that depends on the quality and relevance of the retrieved documents.
         *   If **not relevant**, the workflow bypasses answer generation and instead provides actionable suggestions for enriching the knowledge base.
     *   **SearchRAGWorkflow:** This is the most advanced workflow. It follows the same initial steps of retrieval, reranking, and grading.
         *   If the documents are **not relevant**, it triggers a web search using the **Tavily Search API**. The search results are then used as the new context to generate an answer.
         *   After an answer is generated (either from documents or web search), it undergoes a confidence check. If the confidence score is **low**, the workflow determines that the original query might be suboptimal. It then enters a `query_rewrite` step, where the LLM improves the user's question based on the suggestions and missing info. The rewritten query is then used to perform a new web search, and the process repeats to find a better answer.
+        *   Pydantic models are used to enforce structured output from LLMs at different nodes of graph.
 
 
 ## Technology Stack
